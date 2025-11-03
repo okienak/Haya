@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>OKIENAK</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at 20% 20%, #1b1b1b, #0c0c0c);
+      overflow: hidden;
+      height: 100%;
+      color: #f0f0f0;
+    }
+    canvas.bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+    #root {
+      position: relative;
+      z-index: 1;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      font-weight: 600;
+      color: #f5f5f5;
+      letter-spacing: 2px;
+    }
+    textarea {
+      width: 80%;
+      height: 150px;
+      background: #222;
+      border: 1px solid #555;
+      border-radius: 10px;
+      color: #fff;
+      padding: 10px;
+      margin-top: 20px;
+      resize: none;
+    }
+    button {
+      background: linear-gradient(90deg, #4a90e2, #9013fe);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: transform 0.2s ease;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    .output {
+      width: 80%;
+      margin: 20px auto;
+      text-align: left;
+      background: #151515;
+      border-radius: 10px;
+      padding: 15px;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <canvas class="bg"></canvas>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const API_KEY = "AIzaSyBmD-XSVxCGznnwXmY5JM74wVWPUW5LVpY";
+
+    const App = () => {
+      const [prompt, setPrompt] = React.useState("");
+      const [response, setResponse] = React.useState("");
+      const [loading, setLoading] = React.useState(false);
+
+      const generate = async () => {
+        if (!prompt.trim()) return;
+        setLoading(true);
+        setResponse("...");
+        try {
+          const res = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+            }
+          );
+          const data = await res.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respons.";
+          setResponse(text);
+        } catch (e) {
+          setResponse("Terjadi kesalahan koneksi ke AI.");
+        }
+        setLoading(false);
+      };
+
+      return (
+        <div>
+          <h1>💎 OKIENAK</h1>
+          <p>AI Cerdas untuk Menulis, Merangkum, dan Memperbaiki Catatan</p>
+          <textarea
+            placeholder="Tulis permintaanmu di sini..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
+          <br />
+          <button onClick={generate} disabled={loading}>
+            {loading ? "Memproses..." : "Kirim ke AI"}
+          </button>
+          {response && (
+            <div className="output">
+              <strong>Hasil:</strong>
+              <div>{response}</div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+
+  <script>
+    // animasi background
+    const canvas = document.querySelector(".bg");
+    const ctx = canvas.getContext("2d");
+    let w, h, t = 0;
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+    function draw() {
+      t += 0.002;
+      ctx.fillStyle = "#0c0c0c";
+      ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 60; i++) {
+        const x = (Math.sin(t + i / 5) * w) / 2 + w / 2;
+        const y = (i * 30 + (Math.cos(t + i / 10) * 50)) % h;
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${(t * 100 + i * 10) % 360}, 70%, 50%, 0.15)`;
+        ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
